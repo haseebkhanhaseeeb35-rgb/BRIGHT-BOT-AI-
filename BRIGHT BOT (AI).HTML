@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BrightBot</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: orange;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .chatbox {
+        width: 420px;
+        background: #ff8000;
+        border-radius: 10px;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    h2 {
+        text-align: center;
+        color: #fff9f0;
+        margin-bottom: 10px;
+    }
+
+    #chat {
+        flex: 1;
+        overflow-y: auto;
+        background: #ff9900;
+        padding: 10px;
+        border: 1px solid #ffa500;
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: black;
+    }
+
+    .input-area {
+        display: flex;
+        gap: 5px;
+    }
+
+    input {
+        flex: 1;
+        padding: 8px;
+        border-radius: 5px;
+        border: none;
+    }
+
+    button {
+        padding: 8px 10px;
+        background: #fff9f0;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: black;
+        font-weight: bold;
+    }
+
+    .clear-btn {
+        margin-top: 5px;
+        background: #ffffff;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="chatbox">
+    <h2>🤖 BrightBot</h2>
+    <div id="chat"></div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Ask anything...">
+        <button onclick="send()">Send</button>
+        <button onclick="startVoice()">🎤</button>
+    </div>
+
+    <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
+</div>
+
+<script>
+let memory = JSON.parse(localStorage.getItem("brightBotMemory")) || [];
+
+function send() {
+    let input = document.getElementById("userInput").value.trim();
+    if (!input) return;
+
+    addChat("You", input);
+    memory.push(input);
+    localStorage.setItem("brightBotMemory", JSON.stringify(memory));
+
+    let reply = getReply(input);
+
+    setTimeout(() => {
+        addChat("BrightBot", reply);
+        speak(reply);
+    }, 500);
+
+    document.getElementById("userInput").value = "";
+}
+
+function addChat(sender, text) {
+    let chat = document.getElementById("chat");
+    chat.innerHTML += `<b>${sender}:</b> ${text}<br><br>`;
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function clearChat() {
+    document.getElementById("chat").innerHTML = "";
+}
+
+function getReply(q) {
+    q = q.toLowerCase();
+
+    const dictionary = {
+        "sad": "Sad means feeling unhappy or upset.",
+        "happy": "Happy means feeling joy or pleasure.",
+        "angry": "Angry means feeling mad or annoyed.",
+        "love": "Love means strong affection or care.",
+        "friend": "A friend is someone you like and trust.",
+
+        "school": "School is a place where students learn.",
+        "teacher": "A teacher is a person who teaches students.",
+
+        "mobile": "A mobile phone is used for calling, messaging, and internet.",
+        "computer": "A computer is an electronic device that processes data.",
+        "laptop": "A laptop is a portable computer.",
+        "tablet": "A tablet is a touchscreen device larger than a phone.",
+
+        "instagram": "Instagram is a social media app for sharing photos and videos.",
+        "facebook": "Facebook is a social media platform to connect with people.",
+        "youtube": "YouTube is a platform for watching and uploading videos."
+    };
+
+    // Meaning questions
+    if (q.includes("meaning of") || q.includes("what is")) {
+        for (let word in dictionary) {
+            if (q.includes(word)) return dictionary[word];
+        }
+    }
+
+    // Direct match
+    if (dictionary[q]) return dictionary[q];
+
+    // Greetings
+    if (q.includes("hello") || q.includes("hi"))
+        return "Hello! 😊 How can I help you today?";
+
+    // How are you
+    if (q.includes("how are you"))
+        return "I'm doing great, thanks for asking! How can I help you?";
+
+    // What work do you do
+    if (
+        q.includes("what work") ||
+        q.includes("what can you do") ||
+        q.includes("what do you do")
+    ) {
+        return "I can answer questions, explain meanings, and help with studies and technology.";
+    }
+
+    // Subjects
+    if (q.includes("html")) return "HTML is used to create web pages.";
+    if (q.includes("css")) return "CSS is used to style websites.";
+    if (q.includes("javascript") || q.includes("js"))
+        return "JavaScript makes websites interactive.";
+    if (q.includes("math")) return "Math deals with numbers and calculations.";
+    if (q.includes("science")) return "Science explains how the world works.";
+    if (q.includes("history")) return "History is the study of past events.";
+    if (q.includes("geography")) return "Geography is the study of the Earth.";
+
+    return "That's an interesting question! Please ask in more detail 🙂";
+}
+
+// Voice output
+function speak(text) {
+    if ('speechSynthesis' in window) {
+        let msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'en-US';
+        window.speechSynthesis.speak(msg);
+    }
+}
+
+// Voice input
+function startVoice() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Voice input is not supported in this browser.");
+        return;
+    }
+
+    let recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.start();
+
+    recognition.onresult = function(event) {
+        document.getElementById("userInput").value =
+            event.results[0][0].transcript;
+        send();
+    };
+}
+</script>
+
+</body>
+</html>
